@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+
+ @keyframes fade-up {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 1.2s ease forwards;
+}
+
+.animate-fade {
+  animation: fade-up 1s ease forwards;
+}
+
+.animate-fade-delay {
+  animation: fade-up 1.3s ease forwards;
+} 
+
+
+/* configuration de darkMode pour tailwindcss */
+@custom-variant dark (&:where(.dark, .dark *));
