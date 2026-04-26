@@ -3,26 +3,45 @@ import { Link, useNavigate } from "react-router-dom";
 
 function AdminLogin(){
 
-    const [userName,setUserName] = useState("")
-    const [password,setPassword] = useState("")
+    const [login, setLogin] = useState({ username:"", password:"" })
+    const [token, setToken] = useState(localStorage.getItem("token") || null)
     const [error,setError] = useState("")
     const navigate = useNavigate();
 
-    const handleLogin=(e)=>{
+    const handleChange = (e) => {
+        setLogin({...login, [e.target.name]:e.target.value})
+    }
+
+    const handleLogin= async(e)=>{
 
         e.preventDefault()
 
-        if(userName==="axcel" && password==="1234"){
-            alert("Connexion réussie")
-            setError("")
+        try{
+            const reponse = await fetch("https://poweroftheword.bi/token/",{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify(login)
+            })
 
-            // redirection vers dashboard
-            navigate("/DashboardAdmin")
-        }else{
-            setError("Email ou mot de passe incorrect")
+            if(reponse.ok){
+                const data = await reponse.json();
+
+                const userToken = data.access; // Le backend renvoie souvent { "token": "abc123..." }
+                
+                setToken(userToken);// 1. Enregistrer dans le State
+                localStorage.setItem("token",userToken); // 2. Enregistrer dans le navigateur (pour rester connecté après F5)
+                alert("Connexion reussi");
+                navigate("/DashboardAdmin")
+            } else {
+                setError("Email ou mot de passe incorrect")
+            }
+        } catch(error){
+            console.error("Erreur de connexion au serveur", error);
         }
 
     }
+
+     console.log("=====================",token)
 
     return(
 
@@ -40,26 +59,21 @@ function AdminLogin(){
                         Email
                         </label>
 
-                        <input
-                        type="userName"
+                        <input type="text"
+                        name="username"
                         placeholder="UserName"
                         className="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:border-purple-600"
-                        value={userName}
-                        onChange={(e)=>setUserName(e.target.value)}
+                        value={login.username}
+                        onChange={handleChange}
                         />
                     </div>
 
                     <div className="mb-4">
-                        <label className="text-gray-600 text-sm">
-                        Password
-                        </label>
+                        <label className="text-gray-600 text-sm"> Password </label>
 
-                        <input
-                        type="password"
-                        placeholder="Password"
-                        className="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:border-purple-600"
-                        value={password}
-                        onChange={(e)=>setPassword(e.target.value)}
+                        <input type="password" name="password" placeholder="Password"
+                            className="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:border-purple-600"
+                            value={login.password} onChange={handleChange}
                         />
                     </div>
 

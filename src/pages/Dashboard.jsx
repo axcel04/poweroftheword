@@ -91,7 +91,7 @@ function DashboardAdmin() {
                 <div className="
                     mt-[72px]
                     h-[calc(100vh-72px)]
-                    
+                    overflow-y-auto
                     p-4 md:p-6
                 ">
 
