@@ -113,10 +113,10 @@ function LiveAdmin(){
                 method:methode,
                 headers:{
                     // "Content-Type" : "application/json",
-                     "Authorization":`Bearer ${token}`
+                    "Authorization":`Bearer ${token}`
                 },
-                // body:JSON.stringify(liveVideo)
-                body: formaDta
+                body:JSON.stringify(liveVideo)
+                // body: formaDta
             });
              console.log(reponse)
             if(reponse.ok){

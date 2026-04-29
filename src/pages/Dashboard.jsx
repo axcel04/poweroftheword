@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import LiveAdmin from "../components/LiveAdmin";
 import AudioAdmin from "../components/AudioAdmin";
 import FeedsAdmin from "../components/FeedsAdmin";
+import DailyWord from "../components/DailyWord";
 
 function DashboardAdmin() {
 
@@ -113,10 +114,7 @@ function DashboardAdmin() {
                     )}
 
                     {active==="dailyword" && (
-                        <div className="bg-white p-6 rounded-xl shadow">
-                            <h3 className="font-bold text-lg"> Daily Word </h3>
-                            <p>Manage daily bible verses</p>
-                        </div>
+                       <DailyWord />
                     )}
 
                     {active==="program" && (

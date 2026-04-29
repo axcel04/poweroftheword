@@ -43,7 +43,7 @@ function VideoAdmin(){
         }
         fetchVideos();
       
-    },[video])
+    },[])
 
     // if (loading) return <p>Chargement en cours...</p>;
     // if (error) return <p>Erreur : {error}</p>;
@@ -158,6 +158,7 @@ function VideoAdmin(){
 
     /* EDIT */
     const editVideo=(id)=>{
+        console.log(id)
 
         setVideo(videos[id])
         setEditIndex(id)
@@ -211,72 +212,71 @@ function VideoAdmin(){
         <div className="">
 
             {/* HEADER */}
-         {/* HEADER */}
-<div className="sticky top-4 z-50 mx-auto md:w-[1064px] w-[95%] bg-white/80 backdrop-blur-md p-4 md:p-6 rounded-2xl shadow-lg border border-gray-100">
-    <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-        
-        {/* Titre et Bouton Add (Groupés sur mobile pour gagner de la place) */}
-        <div className="flex justify-between items-center w-full md:w-auto gap-4">
-            <h3 className="font-extrabold text-xl text-gray-800 whitespace-nowrap">
-                Vidéos <span className="text-blue-600 text-sm md:text-lg block md:inline">Témoignage</span>
-            </h3>
-            <button 
-                onClick={() => setOpen(true)}
-                className="md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-md hover:bg-blue-700 transition-transform active:scale-95"
-            >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                </svg>
-            </button>
-        </div>
+            <div className="sticky top-4 z-50 mx-auto md:w-[1064px] w-[95%] bg-white/80 backdrop-blur-md p-4 md:p-6 rounded-2xl shadow-lg border border-gray-100">
+                <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+                    
+                    {/* Titre et Bouton Add (Groupés sur mobile pour gagner de la place) */}
+                    <div className="flex justify-between items-center w-full md:w-auto gap-4">
+                        <h3 className="font-extrabold text-xl text-gray-800 whitespace-nowrap">
+                            Vidéos <span className="text-blue-600 text-sm md:text-lg block md:inline">Témoignage</span>
+                        </h3>
+                        <button 
+                            onClick={() => setOpen(true)}
+                            className="md:hidden bg-blue-600 text-white p-2 rounded-lg shadow-md hover:bg-blue-700 transition-transform active:scale-95"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
 
-        {/* CONTENEUR DES RECHERCHES */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
-            {/* Recherche Langue */}
-            <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                    </svg>
+                    {/* CONTENEUR DES RECHERCHES */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
+                        {/* Recherche Langue */}
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                                </svg>
+                            </div>
+                            <input 
+                                type="search" 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Langue (ex: French)" 
+                                className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            />
+                        </div>
+
+                        {/* Recherche Type */}
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                            </div>
+                            <input 
+                                type="search" 
+                                value={searchType}
+                                onChange={(e) => setSearchType(e.target.value)}
+                                placeholder="Type (ex: Musique)" 
+                                className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Bouton Add Video (PC uniquement) */}
+                    <button 
+                        onClick={() => setOpen(true)}
+                        className="hidden md:flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shadow-md shadow-blue-200 transition-all active:scale-95"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Video</span>
+                    </button>
                 </div>
-                <input 
-                    type="search" 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Langue (ex: French)" 
-                    className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                />
             </div>
-
-            {/* Recherche Type */}
-            <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                </div>
-                <input 
-                    type="search" 
-                    value={searchType}
-                    onChange={(e) => setSearchType(e.target.value)}
-                    placeholder="Type (ex: Musique)" 
-                    className="block w-full p-2.5 pl-10 text-sm text-gray-900 border border-gray-200 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                />
-            </div>
-        </div>
-
-        {/* Bouton Add Video (PC uniquement) */}
-        <button 
-            onClick={() => setOpen(true)}
-            className="hidden md:flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-700 shadow-md shadow-blue-200 transition-all active:scale-95"
-        >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Video</span>
-        </button>
-    </div>
-</div>
 
 
             {/* VIDEO LIST */}
