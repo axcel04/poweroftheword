@@ -37,13 +37,9 @@ function FeedsAdmin() {
       
   }
 fetchFeed();
-},[])
+},[feed])
 
-  // 2. Logique de filtrage (basée sur la langue)
-  const filteredFeeds = feeds.filter((f) =>
-    f.language.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+ 
  const handleChange = (e) => {
   const { name, value, files } = e.target;
 
@@ -61,82 +57,120 @@ fetchFeed();
 };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-  const url =
-    editIndex != null
-      ? `https://poweroftheword.bi/api/feeds/${feeds[editIndex].id}`
-      : "https://poweroftheword.bi/api/feeds/";
+    const url =
+      editIndex != null
+        ? `https://poweroftheword.bi/api/feeds/${feeds[editIndex].id}/`
+        : "https://poweroftheword.bi/api/feeds/";
 
-  const method = editIndex != null ? "put" : "post";
+    const method = editIndex != null ? "put" : "post";
 
-  const formData = new FormData();
-  formData.append("title", feed.title);
-  formData.append("language", feed.language);
-  formData.append("type", feed.type);
-  formData.append("desc", feed.desc);
-  formData.append("date", feed.date);
-  formData.append("start_hour", feed.start_hour);
-  formData.append("end_hour", feed.end_hour);
-  formData.append("lacation", feed.lacation);
-  formData.append("host", feed.host);
-  formData.append("expectation", feed.expectation);
+    const formData = new FormData();
+    formData.append("title", feed.title);
+    formData.append("language", feed.language);
+    formData.append("type", feed.type);
+    formData.append("desc", feed.desc);
+    formData.append("date", feed.date);
+    formData.append("start_hour", feed.start_hour);
+    formData.append("end_hour", feed.end_hour);
+    formData.append("lacation", feed.lacation);
+    formData.append("host", feed.host);
+    formData.append("expectation", feed.expectation);
 
-  if (feed.photo) {
-    formData.append("photo", feed.photo); // IMPORTANT
-  }
-
-  console.log("Image est : ", feed.photo)
-  console.log(feed.photo instanceof File);
-
-  
-  try {
-    const response = await axios[method](url,
-      formData,
-      {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        // ❌ DO NOT set Content-Type here
-      },
-    });
-     
-
-    if (response) {
-      console.log("Feed saved successfully");
-    } 
-  } catch (error) {
-    console.error("Server connection error", error);
-
-    if(error.response){
-      console.log("Status : ", error.response.status);
-      console.log("Détails: ", error.response.data);
-      alert("Erreurs: " + JSON.stringify(error.response.data))
-
-    } else {
-      console.log("Erreur :", error.message);
-      alert("Erreur de server : ", error.message)
+    if (feed.photo instanceof File) {
+      formData.append("photo", feed.photo); // IMPORTANT
     }
-    
-  }
 
-  resetForm()
-};
+    console.log("Image est : ", feed.photo)
+    // console.log(feed.photo instanceof File);
+
+    
+    try {
+      const response = await axios[method](url,
+        formData,
+        {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // ❌ DO NOT set Content-Type here
+        },
+      });
+      
+
+      if (response) {
+
+        if(editIndex !== null){
+          setFeeds(feeds.map(f => f.id === response.data.id ? response.data : f));
+          console.log("Feed edited successfully");
+          alert("Feed edited successfully")
+        }
+        console.log("Feed saved successfully");
+      } 
+    } catch (error) {
+      console.error("Server connection error", error);
+
+      if(error.response){
+        console.log("Status : ", error.response.status);
+        console.log("Détails: ", error.response.data);
+        alert("Erreurs: " + JSON.stringify(error.response.data))
+
+      } else {
+        console.log("Erreur :", error.message);
+        alert("Erreur de server : ", error.message)
+      }
+      
+    }
+
+    resetForm()
+  };
           
 
   const resetForm = () => {
-    // setFeed({ title: "", photo: "", language: "", type: "", desc: "",  date:"",
-    //   start_hour:"", end_hour:"", lacation:"", host:"", expectation:"" });
+    setFeed({ title: "", photo: "", language: "", type: "", desc: "",  date:"",
+       start_hour:"", end_hour:"", lacation:"", host:"", expectation:"" });
       setEditIndex(null);
       setOpen(false);
   };
 
   const handleEdit = (index) => {
     setFeed(feeds[index]);
+    // setFeed({photo:feeds[index].photo});
     setEditIndex(index);
     setOpen(true)
   }
+  
+  const handleDelet = async(id) => {
+    const token = localStorage.getItem("token");
+    if(!token){
+      console.log("Vous devez d'abord de se connecter");
+      alert("Vous devez d'abord de se connecter");
+      return;
+    }
+    if(!window.confirm("Vous pouvez besoin de supprimer ce feed ?")) return;
+    try{ 
+      const reponse = await axios.delete(`https://poweroftheword.bi/api/feeds/${id}/`,{
+        headers:{
+          Authorization:`Bearer${token}`,
+        }
+      });
+
+      if(reponse){
+        setFeeds(feeds.filter(v => v.id !== id));
+        console.log("Video est supprimé avec succes");
+        alert("Video est supprimé avec succes");
+
+      }
+    } catch(error){
+      console.log(error);
+    }
+  }
+   // 2. Logique de filtrage (basée sur la langue)
+  const filteredFeeds = feeds.filter((f) =>
+    f.language.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -193,7 +227,7 @@ fetchFeed();
 
                 <div className="flex gap-2 pt-4 border-t">
                   <button onClick={() => { handleEdit(index)}} className="flex-1 text-sm bg-gray-50 hover:bg-blue-50 text-blue-600 font-semibold py-2 rounded-lg transition-colors">Modifier</button>
-                  <button onClick={() => setFeeds(feeds.filter((item) => item !== f))} className="text-sm bg-gray-50 hover:bg-red-50 text-red-400 p-2 rounded-lg transition-colors">Supprimer</button>
+                  <button onClick={() => {handleDelet(f.id)}} className="text-sm bg-gray-50 hover:bg-red-50 text-red-400 p-2 rounded-lg transition-colors">Supprimer</button>
                 </div>
               </div>
             </div>
@@ -291,7 +325,7 @@ fetchFeed();
         {/* Upload Photo avec Preview (Optionnel visuellement) */}
         <div className="border-2 border-dashed border-gray-200 p-4 rounded-xl hover:border-green-400 transition-colors">
           <label className="block text-sm font-medium text-gray-700 mb-2">Image de couverture</label>
-          <input type="file" name="photo" accept="image/*" onChange={handleChange} required
+          <input type="file" name="photo" accept="image/*" onChange={handleChange}
              className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" />
         </div>
 

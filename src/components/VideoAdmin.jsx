@@ -1,4 +1,5 @@
 import React, {useState,useEffect} from "react";
+import axios from "axios";
 
 function VideoAdmin(){
 
@@ -16,24 +17,21 @@ function VideoAdmin(){
     
     useEffect(()=>{
         const fetchVideos = async() => {
+            const token = localStorage.getItem("token");
             try{
-                const reponse = await fetch("https://poweroftheword.bi/api/video/");
-                if(!reponse.ok){
+                const reponse = await axios.get("https://poweroftheword.bi/api/video/", {
+                    headers:{
+                        Authorization:`Bearer${token}`,
+                    }
+                });
+                if(!reponse){
                     throw new Error("Erreur lors de la récupération des données");
                 }
-                const data = await reponse.json(); // On transforme la réponse en objet JS
-                // console.log("Données reçues du backend :", data);
-                if(Array.isArray(data)) {
-                    setVideos(data); // On met à jour l'état avec les données du serveur
-                   
-                } else if(data.results && Array.isArray(data.results)){
-                    setVideos(data.results);
-                     
-                }else {
-                    // console.error("Le format reçu n'est pas géré :", data);
-                    setVideos([]); // On remet à vide pour éviter le crash
-                }
-                
+              
+                console.log("Données reçues du backend :", reponse.data.results || reponse.data);
+                //  console.log(reponse);
+                setVideos(reponse.data.results || reponse.data); // On met à jour l'état avec les données du serveur
+      
             } catch(err){
                 setError("Erreur de récupération :",err.message);
                 setVideos([]); // On remet à vide pour éviter le crash
@@ -43,7 +41,7 @@ function VideoAdmin(){
         }
         fetchVideos();
       
-    },[])
+    },[video])
 
     // if (loading) return <p>Chargement en cours...</p>;
     // if (error) return <p>Erreur : {error}</p>;
@@ -79,23 +77,28 @@ function VideoAdmin(){
             ? `https://poweroftheword.bi/api/video/${videos[editIndex].id}/` // Exemple si tu as un ID
             : "https://poweroftheword.bi/api/video/";
         
-        const method = editIndex !== null ? "PUT" : "POST";
+        const method = editIndex !== null ? "put" : "post";
+
+        const formData = new FormData();
+        formData.append("title", video.title);
+        formData.append("url", video.url);
+        formData.append("type", video.type);
+        formData.append("language", video.language);
 
         try {
-            const reponse = await fetch(url, {
-                method: method,
+            const reponse = await axios[method](url, formData, {
+                
                 headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
+                    Authorization: `Bearer ${token}`
                  },
-                body: JSON.stringify(video) //Transforme ton objet JavaScript en texte JSON pour que le serveur Django puisse le comprendre
             });
-            
-            if(reponse.ok){
-                const updatedVideos = await reponse.json();
-                console.log("++++++++++++++++++",updatedVideos.id)
+
+            console.log(reponse)
+            if(reponse){
+
+                console.log("++++++++++++++++++",reponse.data.id)
                     if(editIndex !== null){
-                        setVideos(videos.map(v => v.id === updatedVideos.id ? updatedVideos : v));
+                        setVideos(videos.map(v => v.id === reponse.data.id ? reponse.data : v));
                         console.log("Vidéo modifiée avec succès !");
                     } else {
                         console.log("Vidéo enregistrée avec succès sur le serveur");
@@ -130,17 +133,15 @@ function VideoAdmin(){
         if(!window.confirm("Supprimer cette vidéo ?")) return;
 
             try{
-                const reponse = await fetch(`https://poweroftheword.bi/api/video/${id}/`, {
-                    method :"DELETE",
+                const reponse = await axios.delete(`https://poweroftheword.bi/api/video/${id}/`, {
                     headers: {
-                        "Content-Type":"application/json",
 
                         // Permission de supprimer. ici on met le token pour vous donner la permission de supprimer le video
                         "Authorization": `Bearer ${token}`
                     }
                 });
 
-                if(reponse.ok){
+                if(reponse){
                     const updatedVideos = videos.filter(v => v.id !== id)
                     setVideos(updatedVideos)
                     console.log("Vidéo supprimée avec succès du serveur");
