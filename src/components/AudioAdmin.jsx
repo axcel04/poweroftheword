@@ -1,15 +1,17 @@
+import axios from "axios";
 import { useState, useEffect, useMemo } from "react";
+import { DiSafari } from "react-icons/di";
 
 function AudioAdmin() {
   /* ================= STATE ================= */
   const [audios, setAudios] = useState([]);
   const [audio, setAudio] = useState({
-    id: null,
+    
     title: "",
     file: "",
     language: "",
-    date: "",
-    time: ""
+    visible_date: "",
+    visible_time: ""
   });
 
   const [open, setOpen] = useState(false);
@@ -18,64 +20,159 @@ function AudioAdmin() {
   /* ================= LOAD / SAVE ================= */
   /* ================= LOAD / SAVE (Sécurisé) ================= */
 
-useEffect(() => {
-  const data = localStorage.getItem("audios");
-  if (data) setAudios(JSON.parse(data));
-}, []);
+// useEffect(() => {
+//   const data = localStorage.getItem("audios");
+//   if (data) setAudios(JSON.parse(data));
+// }, []);
+
+console.log("==================== " , audios[0]);
 
 useEffect(() => {
+  fetchAudio();
+  }, []);
+
+  const fetchAudio = async() => {
+  const token = localStorage.getItem("token");
+
   try {
-    localStorage.setItem("audios", JSON.stringify(audios));
+    const reponse = await axios.get("https://poweroftheword.bi/api/audio/",
+      {
+      headers:{
+        Authorization:`Bearer ${token}`,
+      }
+      
+    })
+
+     console.log(reponse.data.results || reponse.data )
+    setAudios( reponse.data.results || reponse.data );
+    console.log("Les resultats vient au Bakend sont: ",reponse.data.results || reponse.data );
   } catch (e) {
-    if (e.code === 22 || e.name === 'QuotaExceededError') {
-      alert("Erreur : Espace de stockage plein ! Le fichier audio est trop lourd pour le navigateur.");
-    }
-  }
-}, [audios]);
+      console.error("Erreur:", e);
+
+    if (e.response) {
+      console.log("Status:", e.response.status);
+      console.log("Data:", e.response.data);
+  }}
+}
+
 
   /* ================= HANDLERS ================= */
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
+ const handleChange = (e) => {
+  const { name, value, files } = e.target;
 
-    if (name === "file" && files[0]) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAudio((prev) => ({ ...prev, file: reader.result }));
-      };
-      reader.readAsDataURL(files[0]);
-    } else {
-      setAudio((prev) => ({ ...prev, [name]: value }));
-    }
-  };
+  if (name === "file" && files[0]) {
+    const file = files[0];
+    setAudio({ ...audio,file: file, // ✅ File réel
+    });
+  } else {
+    setAudio({ ...audio, [name]: value,});
+  }
+};
 
-  const handleSubmit = (e) => {
+
+    // console.log("FILE:", audio.file);
+    // console.log("IS FILE:", audio.file instanceof File);
+
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    if (editIndex !== null) {
-      const updated = [...audios];
-      updated[editIndex] = { ...audio, id: Date.now() }; // Update ID to force refresh
-      setAudios(updated);
-    } else {
-      setAudios([...audios, { ...audio, id: Date.now() }]);
+    const token = localStorage.getItem("token");
+
+    const url = editIndex !== null ? `https://poweroftheword.bi/api/audio/${audios[editIndex].id}/`:
+                                      "https://poweroftheword.bi/api/audio/";
+
+    const method = editIndex !== null ? "put" : "post";
+
+    const formData = new FormData();
+   
+    formData.append("title", audio.title);
+    formData.append("language", audio.language);
+    formData.append("visible_date", audio.visible_date);
+    formData.append("visible_time", audio.visible_time);
+
+    if(audio.file instanceof File){
+      formData.append("file", audio.file)
     }
-    resetForm();
+
+    try{
+      const reponse = await axios[method](url,formData,{
+        headers:{
+          Authorization:`Bearer ${token}`,
+        }
+      }) 
+      if(reponse){
+
+        console.log("+++++++++++++++++++++++++",reponse.data)
+
+        if(editIndex !== null){
+          setAudios(audios.map(a => a.id === reponse.data.id ? reponse.data : a ))
+        } else {
+          console.log("Audio est enregistre avec succes");
+          alert("Audio est enregistre avec succes");
+
+        } 
+      }
+    } catch(error){
+      console.error("Erreur lors de la connection du serveur: ", error);
+
+      if(error.response){
+        console.log("Status: ", error.response.status);
+        console.log("Data : ", error.response.data);
+
+        alert(JSON.stringify(error.response.data));
+      } else{
+        console.log("Erreur : ", error.message);
+      }
+    } 
   };
 
   const resetForm = () => {
-    setAudio({ id: null, title: "", file: "", language: "", date: "", time: "" });
+    setAudio({ id: null, title: "", file: "", language: "", visible_date: "", visible_time: "" });
     setEditIndex(null);
     setOpen(false);
   };
 
   const handleEdit = (index) => {
-    setAudio(audios[index]);
+    const item = audios[index];
+    console.log(item.time);
+    setAudio({...item,
+      date: item.visible_date ? item.visible_date.split("T")[0]: "",
+      time: item.visible_time ? item.visible_time.slice(0, 5) : ""
+  });
     setEditIndex(index);
     setOpen(true);
   };
 
-  const handleDelete = (index) => {
-    if (window.confirm("Supprimer cet enregistrement ?")) {
-      setAudios(audios.filter((_, i) => i !== index));
+  const handleDelete = async(index) => {
+    const token = localStorage.getItem("token");
+    if (!window.confirm("Supprimer cet enregistrement ?")) return;
+
+    try{
+      const reponse = await axios.delete(`https://poweroftheword.bi/api/audio/${audios[index].id}/`, {
+        headers: {
+          Authorization:`Bearer ${token}`,
+        }
+      })
+
+      if(reponse){
+         setAudios(audios.filter((_, i) => i !== index));
+         console.log("L'audio est supprimé avec succes.");
+         alert("L'audio est supprimé avec succes.")
+      } else {
+        console.log("Erreur de supprimer l'audio.")
+        alert("Erreur de supprimer l'audio.")
+      }
+        
+    } catch(error) {
+      console.error(" Erreur de connexion de serveur:", error);
+      if(error.response){
+        console.log("Status :", error.response.status);
+        console.log("Details :",error.response.data );
+        alert("Erreur details : " + JSON.stringify(error.response.data));
+      } else {
+        console.log(error.message);
+      }
     }
+    
   };
 
   return (
@@ -103,7 +200,7 @@ useEffect(() => {
                 {a.language || "Inconnu"}
               </span>
               <p className="text-gray-400 text-[11px] font-mono">
-                {a.date} • {a.time}
+                {a.visible_date} • {a.visible_time}
               </p>
             </div>
 
@@ -166,29 +263,29 @@ useEffect(() => {
                   accept="audio/*"
                   name="file"
                   onChange={handleChange}
-                  required={editIndex === null}
+                  
                   className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date de visible</label>
                   <input
                     type="date"
-                    name="date"
-                    value={audio.date}
+                    name="visible_date"
+                    value={audio.visible_date}
                     onChange={handleChange}
                     required
                     className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Heure</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Heure de visible</label>
                   <input
                     type="time"
-                    name="time"
-                    value={audio.time}
+                    name="visible_time"
+                    value={audio.visible_time}
                     onChange={handleChange}
                     required
                     className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
@@ -206,10 +303,10 @@ useEffect(() => {
                   className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
                 >
                   <option value="">Sélectionner une langue</option>
-                  <option value="Français">Français</option>
-                  <option value="English">English</option>
-                  <option value="Kirundi">Kirundi</option>
-                  <option value="Kiswahili">Kiswahili</option>
+                  <option value="FR">Français</option>
+                  <option value="EN">English</option>
+                  <option value="KI">Kirundi</option>
+                  <option value="SW">Kiswahili</option>
                 </select>
               </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import imageCompression from "browser-image-compression";
 
 function FeedsAdmin() {
   const [feeds, setFeeds] = useState([]);
@@ -40,16 +41,35 @@ fetchFeed();
 },[feed])
 
  
- const handleChange = (e) => {
+ const handleChange = async(e) => {
   const { name, value, files } = e.target;
 
   if (name === "photo" && files[0]) {
 
     const file = files[0];
+    if (!file) return;
+
+  try {
+    const options = {
+      maxSizeMB: 0.2,     // taille max (1MB) donc Taille maximale approximative dont l'image ne dependre Ex: 0.2 MB ≈ 200 KB. La librairie va essayer de réduire l’image pour qu’elle soit autour de 200KB. pas exact à 100%, mais proche
+      maxWidthOrHeight: 800,   // Réduction des dimensions (taille en pixels),Si image est grande → elle est réduite. max largeur OU hauteur = 800px
+      useWebWorker: true,
+      // initialQuality: 0.7 Qualité de compression (0 → 1)
+    };
+
+    const compressedFile = await imageCompression(file, options);
+
+    console.log("Original:", file.size / 1024, "KB");
+    console.log("Compressed:", compressedFile.size / 1024, "KB");
+
 
     setFeed({ ...feed,photo: file});
 
     setPreview(URL.createObjectURL(file));
+
+  } catch(error){
+    console.error("Erreur compression : ", error);
+  }
 
   } else {
     setFeed({ ...feed,[name]: value});
@@ -62,11 +82,11 @@ fetchFeed();
     const token = localStorage.getItem("token");
 
     const url =
-      editIndex != null
+      editIndex !== null
         ? `https://poweroftheword.bi/api/feeds/${feeds[editIndex].id}/`
         : "https://poweroftheword.bi/api/feeds/";
 
-    const method = editIndex != null ? "put" : "post";
+    const method = editIndex !== null ? "put" : "post";
 
     const formData = new FormData();
     formData.append("title", feed.title);
